@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/ravenorourke/CLionProjects/OSLab2/data_structs.h
+
+/Users/ravenorourke/CLionProjects/OSLab2/main.cpp
+iostream
+-
+fstream
+-
+string
+-
+data_structs.h
+/Users/ravenorourke/CLionProjects/OSLab2/data_structs.h
+
