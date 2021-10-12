@@ -9,15 +9,22 @@ class PCB {
 public:
     PCB(){};
     PCB(int pid_, int arr_, int burst_, int prior_) : pid(pid_), arrival(arr_), burst(burst_), priority(prior_){}
+    //data from file below
     int pid;
     int arrival;
     int burst;
     int priority;
+    //collected measurements below
+    int completion_time;
+    int waiting_time;
+    int turnaround_time;
+    int response_time;
+    int num_context_occurred;
 };
 
 class ProcessArray { // for holding processes from file before added to ready queue
 public:
-    PCB *arr;
+    PCB *arr = nullptr;
     int count = 0;
 };
 

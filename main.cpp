@@ -16,6 +16,7 @@ const double CONTEXT_SWITCHING_COST = 0.5; //all times are in milliseconds
 // implement RR
 // time unit MILLISECONDS
 // RR: FCFS breaks tie
+// check time quantum
 // assume context switching cost, one CPU, only CPU activities
 // context switch ONLY when current process moved to ready queue, not on termination
 // if same time, NEW process, queued before OLD REQUEUED
@@ -111,13 +112,21 @@ void process_file(const string &filename, ProcessArray *all_processes) {
 }
 
 void fcfs(const string &filename) {
-    ProcessArray *all_processes = new ProcessArray();
-    process_file(filename, all_processes);
-    for (int i = 0; i < all_processes->count; i++) {
-        cout << "Process " << all_processes->arr[i].pid << endl;
-    }
-
     Queue ready_queue;
+    int time = 0;
+    //calculated measurements
+    int avg_cpu_burst;
+    int avg_waiting_time;
+    int avg_turnaround_time;
+    int avg_response_time;
+    int total_context_switches;
+    ProcessArray *all_processes = new ProcessArray();
+    
+    process_file(filename, all_processes);
+
+
+
+
 
 }
 
