@@ -5,14 +5,23 @@
 #ifndef OSLAB2_DATA_STRUCTS_H
 #define OSLAB2_DATA_STRUCTS_H
 
+class Burst {
+    int start_time;
+    int end_time;
+};
+
 class PCB {
 public:
     PCB(){};
-    PCB(int pid_, int arr_, int burst_, int prior_) : pid(pid_), arrival(arr_), burst(burst_), priority(prior_){}
+    PCB(int pid_, int arr_, int total_time_needed_, int prior_) : pid(pid_), arrival(arr_),
+        total_time_needed(total_time_needed_), priority(prior_){
+            bursts = new Burst[total_time_needed_]; // allocate space for maximum number of possible bursts
+            time_left_to_run = total_time_needed_;
+    }
     //data from file below
     int pid;
     int arrival;
-    int burst;
+    int total_time_needed;
     int priority;
     //collected measurements below
     int completion_time;
@@ -20,6 +29,10 @@ public:
     int turnaround_time;
     int response_time;
     int num_context_occurred;
+
+    int time_left_to_run;
+    int num_bursts = 0;
+    Burst *bursts;
 };
 
 class ProcessArray { // for holding processes from file before added to ready queue

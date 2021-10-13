@@ -10,7 +10,6 @@ using namespace std;
 const double CONTEXT_SWITCHING_COST = 0.5; //all times are in milliseconds
 
 //todo
-// add data structs h & cpp to makefile
 // implement FCFS
 // implement SJF
 // implement RR
@@ -124,9 +123,34 @@ void fcfs(const string &filename) {
     
     process_file(filename, all_processes);
 
+    int processes_queued = 0;
+    int completed_processes = 0;
+    int current_time = 0;
+    PCB* currently_running_process;
 
+    //todo remove
+    int safe = 100;
 
+    while (completed_processes < all_processes->count && safe > 0) {
+        //get arriving processes from all_processes & add to ready queue
+        while (all_processes->arr[processes_queued].arrival <= current_time) {
+            ready_queue.enqueue(all_processes->arr[processes_queued]);
+            processes_queued++;
+        }
+        //check if currently running process - if not, add context switching time and get next process from ready queue
+        if (currently_running_process == nullptr) {
 
+        } else {
+
+        }
+        //begin new burst
+        //run process - decrement time still needed
+        //if time still needed is 0, update burst, increment completed processes & set currently running to null
+
+        //increment current_time
+        current_time += 1;
+        safe--;
+    }
 
 }
 
