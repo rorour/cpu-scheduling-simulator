@@ -37,13 +37,15 @@ void Queue::dequeue(int index) {
     }
     if (index != 0) {
         current.prev->next = current.next;
-    } else {
+    } else if (index != length - 1){
         head = current.next;
+    } else {
+        head = nullptr;
     }
 
     if (index != length - 1) {
         current.next->prev = current.prev;
-    } else {
+    } else if (index != 0) {
         current.prev->next = nullptr;
     }
 

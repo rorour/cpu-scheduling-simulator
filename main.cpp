@@ -28,6 +28,7 @@ const double CONTEXT_SWITCHING_COST = 0.5; //all times are in milliseconds
 void fcfs(const string &filename);
 void sjf(const string &filename);
 void rr(const string &filename);
+void print_history(const string algo_type, const ProcessArray *all_processes);
 
 int main(int argc, char *argv[]) {
     //todo rm this section
@@ -112,47 +113,124 @@ void process_file(const string &filename, ProcessArray *all_processes) {
 
 void fcfs(const string &filename) {
     Queue ready_queue;
-    int time = 0;
-    //calculated measurements
-    int avg_cpu_burst;
-    int avg_waiting_time;
-    int avg_turnaround_time;
-    int avg_response_time;
-    int total_context_switches;
+    int processes_queued = 0;
+    int completed_processes = 0;
+    double current_time = 0;
+    PCB* currently_running_process = nullptr;
     ProcessArray *all_processes = new ProcessArray();
     
     process_file(filename, all_processes);
 
-    int processes_queued = 0;
-    int completed_processes = 0;
-    int current_time = 0;
-    PCB* currently_running_process;
-
-    //todo remove
-    int safe = 100;
-
-    while (completed_processes < all_processes->count && safe > 0) {
-        //get arriving processes from all_processes & add to ready queue
-        while (all_processes->arr[processes_queued].arrival <= current_time) {
+    while (completed_processes < all_processes->count) {
+        //get arriving processes at this time from all_processes & add to ready queue
+        while (processes_queued < all_processes->count && all_processes->arr[processes_queued].arrival <= current_time) {
             ready_queue.enqueue(all_processes->arr[processes_queued]);
             processes_queued++;
         }
-        //check if currently running process - if not, add context switching time and get next process from ready queue
-        if (currently_running_process == nullptr) {
-
-        } else {
-
+        //check if currently running process - if not,get next process from ready queue
+        if (currently_running_process == nullptr && ready_queue.head != nullptr) { //start new process
+            currently_running_process = &ready_queue.head->process;
+            ready_queue.dequeue();
+            Burst* new_burst = new Burst(current_time); //begin new burst
+            currently_running_process->bursts[currently_running_process->num_bursts] = *new_burst;
         }
-        //begin new burst
-        //run process - decrement time still needed
-        //if time still needed is 0, update burst, increment completed processes & set currently running to null
+        //else we are continuing with currently running process
 
-        //increment current_time
+        //run process - decrement time still needed
+        currently_running_process->time_left_to_run--;
+
+        //increment current time
         current_time += 1;
-        safe--;
+
+        //if time still needed is 0, update burst, increment completed processes & set currently running to null
+        if (currently_running_process->time_left_to_run == 0) {
+            currently_running_process->bursts[currently_running_process->num_bursts].end_time = current_time;
+
+            cout << "Process " << currently_running_process->pid << " ran from "
+                << currently_running_process->bursts[currently_running_process->num_bursts].start_time << " to "
+                << currently_running_process->bursts[currently_running_process->num_bursts].end_time << endl;
+
+            completed_processes ++;
+            cout << "Completed process " << completed_processes << endl;
+
+            currently_running_process->completion_time = currently_running_process->bursts[currently_running_process->num_bursts].end_time;
+            //waiting time for fcfs is start time minus arrival time
+            currently_running_process->waiting_time = currently_running_process->bursts[0].start_time - currently_running_process->arrival;
+            //turnaround time for fcfs is end time minus arrival time
+            currently_running_process->turnaround_time = currently_running_process->bursts[0].end_time - currently_running_process->arrival;
+            //response time for fcfs is waiting time
+            currently_running_process->response_time = currently_running_process->waiting_time;
+
+            //update all_processes with completed process info
+            for (int a = 0; a < all_processes->count; a++) {
+                if (all_processes->arr[a].pid == currently_running_process->pid) {
+                    all_processes->arr[a] = *currently_running_process;
+                }
+            }
+
+            currently_running_process = nullptr;
+        }
     }
 
+    cout << "Done running all processes." << endl;
+    print_history("FCFS", all_processes);
 }
+
+void print_history(const string algo_type, const ProcessArray *all_processes) {
+    //calculated measurements
+    float avg_cpu_burst = 0;
+    float avg_waiting_time = 0;
+    float avg_turnaround_time = 0;
+    float avg_response_time = 0;
+    int total_context_switches = 0;
+
+    cout << "\n--------------------------------------------------Scheduling Algorithm: "
+        << algo_type << "---------------------------------------------------\n";
+
+    printf ("%5s ", "pid | ");
+    printf ("%5s ", "arrival | ");
+    printf ("%5s ", "CPU burst | ");
+    printf ("%5s ", "priority | ");
+    printf ("%5s ", "completion time | ");
+    printf ("%5s ", "wait time | ");
+    printf ("%5s ", "turnaround time | ");
+    printf ("%5s ", "response time | ");
+    printf ("%5s ", "context switches ");
+    cout << endl;
+
+    for (int i = 0; i < all_processes->count; i++) {
+        PCB proc = all_processes->arr[i];
+        printf ("%3d |", proc.pid);
+        printf ("%9d |", proc.arrival);
+        printf ("%11d |", proc.total_time_needed);
+        printf ("%10d |", proc.priority);
+        printf ("%17.1f |", proc.completion_time);
+        printf ("%11.1f |", proc.waiting_time);
+        printf ("%17.1f |", proc.turnaround_time);
+        printf ("%15.1f |", proc.response_time);
+        printf ("%17d ", proc.num_context_occurred);
+        cout << endl;
+
+        avg_cpu_burst += proc.total_time_needed;
+        avg_waiting_time += proc.waiting_time;
+        avg_turnaround_time += proc.turnaround_time;
+        avg_response_time += proc.response_time;
+        total_context_switches += proc.num_context_occurred;
+    }
+
+    avg_cpu_burst /= all_processes->count;
+    avg_waiting_time /= all_processes->count;
+    avg_turnaround_time /= all_processes->count;
+    avg_response_time /= all_processes->count;
+
+    cout << "average CPU burst time: " << avg_cpu_burst << "ms\n";
+    cout << "average wait time: " << avg_waiting_time << "ms\n";
+    cout << "average turnaround time: " << avg_turnaround_time << "ms\n";
+    cout << "average response time: " << avg_response_time << "ms\n";
+    cout << "total number of context switches: " << total_context_switches << "\n";
+    cout << endl;
+}
+
 
 
 void sjf();

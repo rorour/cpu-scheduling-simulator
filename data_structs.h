@@ -6,8 +6,11 @@
 #define OSLAB2_DATA_STRUCTS_H
 
 class Burst {
-    int start_time;
-    int end_time;
+public:
+    Burst(){};
+    Burst(double start): start_time(start) {};
+    double start_time;
+    double end_time;
 };
 
 class PCB {
@@ -24,11 +27,11 @@ public:
     int total_time_needed;
     int priority;
     //collected measurements below
-    int completion_time;
-    int waiting_time;
-    int turnaround_time;
-    int response_time;
-    int num_context_occurred;
+    double completion_time;
+    double waiting_time;
+    double turnaround_time;
+    double response_time;
+    int num_context_occurred = 0;
 
     int time_left_to_run;
     int num_bursts = 0;
