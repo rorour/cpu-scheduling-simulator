@@ -10,7 +10,6 @@ using namespace std;
 const double CONTEXT_SWITCHING_COST = 0.5; //all times are in milliseconds
 
 //todo
-// implement SJF
 // implement RR
 // RR: FCFS breaks tie
 // check time quantum
@@ -25,8 +24,8 @@ const double CONTEXT_SWITCHING_COST = 0.5; //all times are in milliseconds
 
 void fcfs(const string &filename);
 void sjf(const string &filename);
-void rr(const string &filename);
-void print_history(const string algo_type, const ProcessArray *all_processes);
+void rr(const string &filename, int q);
+void print_history(string algo_type, const ProcessArray *all_processes, int q);
 
 int main(int argc, char *argv[]) {
     //todo rm this section
@@ -53,6 +52,7 @@ int main(int argc, char *argv[]) {
             break;
         case '2': // RR
             cout << "RR selected\n";
+            rr(argv[1], stoi(argv[3]));
             break;
         default:
             cout << "Invalid algorithm specified. 0=FCFS, 1=SJF, 2=RR\n";
@@ -110,7 +110,7 @@ void process_file(const string &filename, ProcessArray *all_processes) {
     }
 }
 
-void print_history(const string algo_type, const ProcessArray *all_processes) {
+void print_history(const string algo_type, const ProcessArray *all_processes, int q=-1) {
     //calculated measurements
     float avg_cpu_burst = 0;
     float avg_waiting_time = 0;
@@ -120,6 +120,11 @@ void print_history(const string algo_type, const ProcessArray *all_processes) {
 
     cout << "\n--------------------------------------------------Scheduling Algorithm: "
          << algo_type << "---------------------------------------------------\n";
+
+    if (q>-1) {
+        cout << "-------------------------------------------------------------Q="
+             << q << "---------------------------------------------------------------\n";
+    }
 
     printf ("%5s ", "pid | ");
     printf ("%5s ", "arrival | ");
@@ -288,11 +293,8 @@ void sjf(const string &filename) {
             cout << "Completed process " << completed_processes << endl;
 
             currently_running_process->completion_time = currently_running_process->bursts[currently_running_process->num_bursts].end_time;
-            //waiting time for fcfs is start time minus arrival time
             currently_running_process->waiting_time = currently_running_process->bursts[0].start_time - currently_running_process->arrival;
-            //turnaround time for fcfs is end time minus arrival time
             currently_running_process->turnaround_time = currently_running_process->bursts[0].end_time - currently_running_process->arrival;
-            //response time for fcfs is waiting time
             currently_running_process->response_time = currently_running_process->waiting_time;
 
             //update all_processes with completed process info
@@ -310,4 +312,98 @@ void sjf(const string &filename) {
     print_history("SJF-", all_processes);
 }
 
-void rr();
+void rr(const string &filename, int q) {
+    Queue ready_queue;
+    int processes_queued = 0;
+    int completed_processes = 0;
+    double current_time = 0;
+    PCB* currently_running_process = nullptr;
+    ProcessArray *all_processes = new ProcessArray();
+    PCB* requeue = nullptr;
+
+    process_file(filename, all_processes);
+
+    while (completed_processes < all_processes->count) {
+        //get arriving processes at this time from all_processes & add to ready queue
+        while (processes_queued < all_processes->count && all_processes->arr[processes_queued].arrival <= current_time) {
+            ready_queue.enqueue(all_processes->arr[processes_queued]);
+            processes_queued++;
+        }
+        //requeue interrupted process if necessary
+        if (requeue != nullptr) {
+            ready_queue.enqueue(*requeue);
+        }
+        //check if currently running process - if not,get next process from ready queue
+        if (currently_running_process == nullptr && ready_queue.head != nullptr) { //start new process
+            currently_running_process = &ready_queue.head->process;
+            ready_queue.dequeue();
+
+            //update wait time & response time for newly started process
+            //if first burst, wait time is current time minus arrival time
+            //else, wait time is current time minus prev burst end time
+            if (currently_running_process->num_bursts == 0) {
+                currently_running_process->waiting_time += current_time - currently_running_process->arrival;
+                currently_running_process->response_time = currently_running_process->waiting_time;
+            } else {
+                currently_running_process->waiting_time += current_time - currently_running_process->bursts[currently_running_process->num_bursts - 1].end_time;
+            }
+
+            //begin new burst
+            Burst* new_burst = new Burst(current_time);
+            currently_running_process->bursts[currently_running_process->num_bursts] = *new_burst;
+            currently_running_process->num_bursts++;
+        }
+        //else we are continuing with currently running process
+
+        //run process - decrement time still needed
+        currently_running_process->time_left_to_run--;
+
+        //increment current time
+        current_time += 1;
+
+        //increment burst time
+        currently_running_process->bursts[currently_running_process->num_bursts-1].end_time = current_time;
+
+        bool preempted = (currently_running_process->bursts[currently_running_process->num_bursts - 1].end_time
+                - currently_running_process->bursts[currently_running_process->num_bursts - 1].start_time)
+                >= q;
+        bool finished = currently_running_process->time_left_to_run == 0;
+
+        if (finished) {
+            preempted = false;
+            completed_processes ++;
+            cout << "Completed process " << completed_processes << endl;
+
+            currently_running_process->completion_time = currently_running_process->bursts[currently_running_process->num_bursts-1].end_time;
+            currently_running_process->turnaround_time = currently_running_process->bursts[currently_running_process->num_bursts - 1].end_time - currently_running_process->arrival;
+        }
+
+        if (finished || preempted) {
+            cout << "Process " << currently_running_process->pid << " ran from "
+                 << currently_running_process->bursts[currently_running_process->num_bursts-1].start_time << " to "
+                 << currently_running_process->bursts[currently_running_process->num_bursts-1].end_time << endl;
+
+            if (preempted) {
+                currently_running_process->num_context_occurred++;
+                requeue = currently_running_process;
+                current_time += 0.5;
+
+            }
+
+            //update all_processes with completed process info
+            for (int a = 0; a < all_processes->count; a++) {
+                if (all_processes->arr[a].pid == currently_running_process->pid) {
+                    all_processes->arr[a] = *currently_running_process;
+                }
+            }
+
+            currently_running_process = nullptr;
+        }
+        if (!preempted) {
+            requeue = nullptr;
+        }
+    }
+
+    cout << "Done running all processes." << endl;
+    print_history("RR--", all_processes, q);
+}
