@@ -28,11 +28,10 @@ void rr(const string &filename, int q);
 void print_history(string algo_type, const ProcessArray *all_processes, int q);
 
 int main(int argc, char *argv[]) {
-    //todo rm this section
-    cout << "argc is " << argc << endl;
-    for (int i = 0; i < argc; i++) { // 0=unneeded, 1=input file, 2=algo, 3(optional)=quantum size
-        cout << "argv[" << i << "] is " << argv[i] << endl;
-    }
+//    cout << "argc is " << argc << endl;
+//    for (int i = 0; i < argc; i++) { // 0=not needed, 1=input file, 2=algo, 3(optional)=quantum size
+//        cout << "argv[" << i << "] is " << argv[i] << endl;
+//    }
 
     if (argc < 3 || (*argv[2] == '2' && argc < 4)) {
         cout << "Not enough arguments detected\n";
@@ -40,6 +39,8 @@ int main(int argc, char *argv[]) {
         cout << "0=FCFS, 1=SJF, 2=RR\n";
         return 0;
     }
+
+    int q = -1; //time quantum for rr only
 
     switch(*argv[2]) {
         case '0': // FCFS
@@ -52,7 +53,12 @@ int main(int argc, char *argv[]) {
             break;
         case '2': // RR
             cout << "RR selected\n";
-            rr(argv[1], stoi(argv[3]));
+            q = stoi(argv[3]);
+            if (q < 1) {
+                cout << "q cannot be less than 1.";
+            } else {
+                rr(argv[1], q);
+            }
             break;
         default:
             cout << "Invalid algorithm specified. 0=FCFS, 1=SJF, 2=RR\n";
@@ -73,7 +79,7 @@ void process_file(const string &filename, ProcessArray *all_processes) {
     if (infile.is_open()) {
         string line;
         while ( getline (infile,line)) {
-            cout << line << '\n';
+//            cout << line << '\n';
             lines[num_lines] = line;
             num_lines++;
         }
@@ -82,7 +88,7 @@ void process_file(const string &filename, ProcessArray *all_processes) {
 
     all_processes->arr = new PCB[num_lines];
     all_processes->count = num_lines;
-    cout << "Read in " << num_lines << " lines\n";
+//    cout << "Read in " << num_lines << " lines\n";
 
 
     //process lines from file
@@ -259,7 +265,7 @@ void sjf(const string &filename) {
             int shortest_job_index = 0;
             int checking_index = 0;
             while (checking_process != nullptr) {
-                cout << "checking process " << checking_process->process.pid << endl;
+                // cout << "checking process " << checking_process->process.pid << endl;
                 if (checking_process->process.total_time_needed < shortest_job->process.total_time_needed) {
                     shortest_job = checking_process;
                     shortest_job_index = checking_index;

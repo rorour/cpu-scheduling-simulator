@@ -1,0 +1,16 @@
+CSCI 3453 - OS Lab 2 - Raven O'Rourke - 11/2/2021
+
+To run: Make with "make", then run with "./main" + command line arguments.
+First argument is the name of test input file.
+Second argument represents scheduling algorithm to use: 
+	First In First Out = 0
+	Shortest Job First = 1
+	Round Robin = 2
+
+If running Round Robin, you must also choose a time quantum which should be a positive  integer.
+
+Examples:
+To run FIFO, type "./main input10 0"
+To run RR with q=2, type "./main input10 2 2"
+
+Use "make clean" to remove exe/object files.
