@@ -7,7 +7,7 @@ Second argument represents scheduling algorithm to use:
 	Shortest Job First = 1
 	Round Robin = 2
 
-If running Round Robin, you must also choose a time quantum which should be a positive  integer.
+If running Round Robin, you must also choose a time quantum which should be a positive integer.
 
 Examples:
 To run FIFO, type "./main input10 0"
