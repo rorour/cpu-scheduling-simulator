@@ -1,3 +1,0 @@
-/Users/ravenorourke/CLionProjects/OSLab2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/Users/ravenorourke/CLionProjects/OSLab2/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/ravenorourke/CLionProjects/OSLab2/cmake-build-debug/CMakeFiles/OSLab2.dir
