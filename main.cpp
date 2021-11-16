@@ -9,19 +9,6 @@ using namespace std;
 
 const double CONTEXT_SWITCHING_COST = 0.5; //all times are in milliseconds
 
-//todo
-// implement RR
-// RR: FCFS breaks tie
-// check time quantum
-// assume context switching cost, one CPU, only CPU activities
-// context switch ONLY when current process moved to ready queue, not on termination
-// if same time, NEW process, queued before OLD REQUEUED
-// select process from ready queue
-// execute process by given scheduling algo
-// display activities and eval performance based on avg turnaround, waiting time, response time
-// does it need to display gantt chart as well?
-// make sure runs on csegrid
-
 void fcfs(const string &filename);
 void sjf(const string &filename);
 void rr(const string &filename, int q);
